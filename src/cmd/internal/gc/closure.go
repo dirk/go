@@ -442,7 +442,8 @@ func walkclosure(func_ *Node, init **NodeList) *Node {
 	typ.List = list1(Nod(ODCLFIELD, newname(Lookup(".F")), typenod(Types[TUINTPTR])))
 	var typ1 *Node
 	var v *Node
-	for l := func_.Func.Cvars; l != nil; l = l.Next {
+	var l *NodeList
+	for l = func_.Func.Cvars; l != nil; l = l.Next {
 		v = l.N
 		if v.Op == OXXX {
 			continue
@@ -454,10 +455,26 @@ func walkclosure(func_ *Node, init **NodeList) *Node {
 		typ.List = list(typ.List, Nod(ODCLFIELD, newname(v.Sym), typ1))
 	}
 
+	var entries *NodeList
+	for l = func_.Func.Enter; l != nil; l = l.Next {
+		n := l.N
+		switch n.Op {
+		case OKEY:
+			// Convert the OKEYs into simple ONAMEs
+			n = n.Right
+			break
+		case ONAME, OADDR:
+			break
+		default:
+			Fatal("Cannot handle Node in closure: %v", Nconv(n, obj.FmtSign))
+		}
+		entries = concat(entries, list1(n))
+	}
+
 	clos := Nod(OCOMPLIT, nil, Nod(OIND, typ, nil))
 	clos.Esc = func_.Esc
 	clos.Right.Implicit = true
-	clos.List = concat(list1(Nod(OCFUNC, func_.Closure.Nname, nil)), func_.Func.Enter)
+	clos.List = concat(list1(Nod(OCFUNC, func_.Closure.Nname, nil)), entries)
 
 	// Force type conversion from *struct to the func type.
 	clos = Nod(OCONVNOP, clos, nil)
