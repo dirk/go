@@ -215,8 +215,11 @@ func ishairy(n *Node, budget *int) bool {
 			return true
 		}
 
-	case OCLOSURE,
-		OCALLPART,
+	case OCLOSURE:
+		// TODO: Include closure cost in the budget
+		break
+
+	case OCALLPART,
 		ORANGE,
 		OFOR,
 		OSELECT,
@@ -962,9 +965,9 @@ func inlsubst(n *Node) *Node {
 	*m = *n
 	m.Ninit = nil
 
-	if n.Op == OCLOSURE {
-		Fatal("cannot inline function containing closure: %v", Nconv(n, obj.FmtSign))
-	}
+	// if n.Op == OCLOSURE {
+	// 	Fatal("cannot inline function containing closure: %v", Nconv(n, obj.FmtSign))
+	// }
 
 	m.Left = inlsubst(n.Left)
 	m.Right = inlsubst(n.Right)
