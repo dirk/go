@@ -783,7 +783,7 @@ func mkinlcall1(np **Node, fn *Node, isddd bool) {
 		ninit = list(ninit, as)
 	}
 
-	inlretlabel = newlabel_inl()
+	inlretlabel = newlabel_inl(fn)
 	inlgen++
 	body := inlsubstlist(fn.Func.Inl)
 
@@ -884,9 +884,9 @@ func argvar(t *Type, i int) *Node {
 
 var newlabel_inl_label int
 
-func newlabel_inl() *Node {
+func newlabel_inl(parent *Node) *Node {
 	newlabel_inl_label++
-	n := newname(Lookupf(".inlret%.6d", newlabel_inl_label))
+	n := newname(Lookupf("%s.inlret%.6d", parent.Sym.Name, newlabel_inl_label))
 	n.Etype = 1 // flag 'safe' for escape analysis (no backjumps)
 	return n
 }
